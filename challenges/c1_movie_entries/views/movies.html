@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <style>
+  body { font-family: 'Helvetica', 'Arial', sans-serif; }
+  </style>
+  </head>
+  <body>
+    <h1>Movies</h1>
+
+    {% for movie in movies %}
+      <li><a href="http://www.imdb.com/title/{{ movie.imdb }}">{{ movie.title }}, {{ movie.year }}</a></li>
+    {% else %}
+      <li>No movies found.</li>
+    {% endfor %}
+    <h2></h2>
+
+    <!-- DONE: create a form with three fields and a submit button -->
+    <form method="POST" action="/" enctype="application/x-www-form-urlencoded">
+      <div class="">
+        <label for="title">title: </label>
+        <input type="text" name="title" value="" id="title">
+      </div>
+      <div class="">
+        <label for="year">year: </label>
+        <input type="text" name="year" value="" id="year">
+      </div>
+      <div class="">
+        <label for="imdb">imdb: </label>
+        <input type="text" name="imdb" value="" id="imdb">
+      </div>
+
+      <input type="submit"/>
+    </form>
+  </body>
+  <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="/script.js"></script> -->
+</html>
