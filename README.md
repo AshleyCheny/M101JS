@@ -1,6 +1,12 @@
 # M101JS
 [A MongoDB course for Node.js Developers](https://university.mongodb.com/courses/M101JS/about)
 
+- db
+  - collection
+    - documents
+      - fields(keys)
+      - values
+
 ## Week 1
 ### What is MongoDB?
 1. scaling out vs. scaling up
@@ -109,3 +115,23 @@
 - `db.collectionName.updateMany()`
 - `db.collectionName.find({}, {upsert: true})`
 - `db.collectionName.replaceOne()`
+
+## Week 3: The Node.js Driver
+### find() and Cursors in the Node.js Driver
+- `mongodimport`
+- `cursor` to describe the query instead of calling the db immediately, get batches results
+
+### Projection in the Node.js Driver
+-  `projection` project out the fields we need
+- `0` exclude the fields
+- `1` include the fields
+
+### Query Operators in the Node.js Driver
+
+## Questions
+1. How to search in array of object in mongodb?
+  - [Query an Array of embedded documents](https://docs.mongodb.com/manual/tutorial/query-array-of-documents/)
+2. How to remove fields in a documents with specific queries?
+  - ($unset)[https://docs.mongodb.com/manual/reference/operator/update/unset/]
+3. How to check a field is null ?
+  - [Query for null or missing fields](https://docs.mongodb.com/v3.2/tutorial/query-for-null-fields/)
