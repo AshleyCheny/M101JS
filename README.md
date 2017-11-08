@@ -119,14 +119,41 @@
 ## Week 3: The Node.js Driver
 ### find() and Cursors in the Node.js Driver
 - `mongodimport`
-- `cursor` to describe the query instead of calling the db immediately, get batches results
+- `cursor` to describe the query instead of calling the db immediately, get batches results instead of getting the whole result at once
 
 ### Projection in the Node.js Driver
+- `cursor.project({ })`
 -  `projection` project out the fields we need
 - `0` exclude the fields
 - `1` include the fields
 
 ### Query Operators in the Node.js Driver
+- `command line args module`
+- `find(query, projection)`
+
+### `$regex` operator in the Node.js Driver
+- `"options": i`
+
+### Dot Notation in the Node.js Driver
+- `{ }`
+- Dot notation
+- `[]`
+
+### Dot Notation on embedded Documents in Arrays
+
+### Sort, Skip, and Limit in the Node.js Driver
+- paging
+- sort by single field: `cursor.sort({})`
+- sort by multiple fields: `cursor.sort([[], []])` - because the sequence matters
+- `cursor.skip(#)`: skip the specified number of documents. Eg. `cursor.skip(4)`: skip the first 4 documents
+- `cursor.limit(#)`
+- the order of sort, skip and limit methods does not matter, because mongodb will always run sort() first, then skip() and limit() at the end.
+
+### `insertOne()` and `insertMany()` in the Node.js Driver
+
+### `deleteOne(filter, callback)` and `deleteMany()` in the Node.js Driver
+
+
 
 ## Questions
 1. How to search in array of object in mongodb?
