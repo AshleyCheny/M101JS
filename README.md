@@ -153,7 +153,93 @@
 
 ### `deleteOne(filter, callback)` and `deleteMany()` in the Node.js Driver
 
+## Week 4: Schema Design
+### MongoDB Schema Design
+- application driven schema
+- support rich documents (array, annother documents, etc)
+- pre join/embedded data
+- no Mongo Joins
+- no constraints
+- atomic operations
+- no declared schema
+- What is the single most important factor in designing the application schema within MongodDB
+  - Matching the data access patterns of the application
 
+### Relational Normalization
+- MongodDB frees the database of modification anomalies.
+- Minize redesign when extending
+
+### Modeling a Blog in documents
+-  `Post` collection
+- only need to access to one collection
+
+### Living without constraints
+- relational database
+  - foreign key constraint
+- mongodb
+  - no guarantee for foreign key constraint
+  - no use embedded data to make the data consistent
+
+### Living without transactions
+- use atomic operations (avoid making changes to the same documents at the same time)
+- three approaches
+  - restructure
+  - implement locking in software operating system
+  - tolerate a little bit inconsistency
+- `Update`, `findAndModify`, `$addToSet(within an update)` and `$push within an update` are all the operations operate atomically within a single document.
+
+### One to One Relations
+- Examples:
+  - (one)Employee: (one)Resume
+  - (one)Building: (one)Floor Plan
+  - (one)Patient: (one)Medical History
+- When to keep documents in separate collections
+  - to reduce the working set size of the application
+  - when the combined size of documents would be larger than 16MB
+
+### One to Many Relations
+- Examples:
+  - (one)city: (many)person
+
+- true linking (store info in multiple collections)
+  - people collection
+    `{
+      name: "xxx",
+      city: "NYC"
+    }`
+  - city collection
+   `{
+     "_id": "NYC"
+   }`
+
+- One to Few
+  - nested the other one in one single collection
+
+### Many to Many Relations
+- Examples:
+  - Books: Authors (Few to Few)
+  - Students: Teachers
+
+- Few to Few
+  - one collection with nested one
+
+### MultiKey Indexes(??)
+- for complicated queries to different collections
+- `ensureIndex({})`
+- `explain()`
+
+### Benefits of Embedding
+- Improved Read Performance
+  - It takes long time to get the first byte from the db. However, the subsequent ones won't take long times.
+- One Round trip to the DB
+
+### Representing Trees in MongoDB
+- list ancestors/children as the value of the "ancestors" property for example.
+
+### When to denormalize
+- 1: 1 (embedded)
+- 1: Many (embedded: from the many to the one)
+- Many: Many (Link through objectID)
 
 ## Questions
 1. How to search in array of object in mongodb?
