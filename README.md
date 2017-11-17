@@ -241,6 +241,184 @@
 - 1: Many (embedded: from the many to the one)
 - Many: Many (Link through objectID)
 
+## Week 5: Indexes and Performance
+### Storage Engines: Introduction
+- `[Indexing](https://docs.mongodb.com/manual/indexes/)`
+- `[Sharding](https://docs.mongodb.com/manual/sharding/)`
+- `[Pluggable Storage Engines](https://docs.mongodb.com/manual/core/storage-engines/)`
+  - Where the storage engine sits?
+    - It sits between `disks`(hardware) and mongodb server(database)
+  - the storage engine has the control of `memeory` in the computer, it decides what to take out and what to put to the `memeory`
+  - change the mongodb performance based on different storage engines
+  - Two Storage Engines
+    - MMAP (default, provided by mongodb)
+    - WiredTiger
+  - What things storage engine do not handle?
+  - The storage engine directly determines "The data file format" & "Format of Indexes"
+
+### Storage Engines: MMAPv1
+- `Disk`: store all the documents
+- `Memory`: store documents which are needed for the working processes
+- Provides collection level locking
+- In place updates
+- Power of two sized allocations
+- MMAPv1 automatically allocates power-of-two-sized documents when new documents are inserted**
+- MMAPv1 is built on top of the mmap system call that maps files into memory**
+
+### Storage Engines: WiredTiger
+- not turned on by default in mongodb (before 3.0 or older)
+- faster
+- Document level concurrency (lock free implementation)
+- Compression
+  - of data
+  - of Indexes
+- control its memory
+- No inplace update
+- invoke the WiredTiger engine
+  -  `mongod --storageEngine wiredTiger`
+
+### [Indexes](https://docs.mongodb.com/manual/indexes/)
+- collections are storage in the disk
+- ordered indexes
+- b tree(data structure) index in real practice before 3.0(b+ tree for wiredTiger)
+- index will be affected by inserting new documents
+- index will be available in disks or memories
+- adding an appropriate index will have a great impact on the performance of a database
+
+### Create Indexes
+- `db.students.explain().find()`
+- `db.students.createIndex({ student_id: 1})`
+  - create a index with student id ascending
+- creating an index takes some time
+
+### Discovering (and Deleting) Indexes
+- check indexes for collections
+  - `db.students.getIndexes()`
+- delete indexes for collections
+  - `db.students.dropIndex()`
+
+### MultiKey Indexes**
+- can not index parallel arrays
+
+### Dot Notation and MultiKey
+- create indexes based on the nested properties
+
+### Index Creation Option, Unique
+- `db.stuff.createIndex({thing: 1}, {unique: true})`
+- can not create unique index if there are multiple same documents
+- after creating the unique index, if inserting a document which has the same contents as the one in the collection, the mongodb will throw duplicate key error
+
+### Index Creation, Sparse**
+- use sparse option on missing key document
+- `db.employees.createIndex({ cell: 1}, {unique: true, sparse: true})`
+
+### [Index Creation, in Background](https://docs.mongodb.com/manual/core/index-creation/)
+- Foreground:
+  - `db.students.createIndex({'scores.score': 1});`
+  - fast
+  - blocks writes and reads in the database
+- Background
+  - `db.students.createIndex({'scores.score': 1}, {background: true});`
+  - slow
+  - do not block reads and writes
+
+### Using Explain
+- `explain()`
+- show how the database deals with the query and which index it uses
+- `db.foo.explain().find()/help()/update()/remove()/aggregate()`
+- no insert operation on explain()
+
+### [Explain: Verbosity**](https://docs.mongodb.com/v3.4/reference/method/cursor.explain/)
+- Modes   
+  - query planner
+  - execution stats (explain("executionStats"))
+  - all plans execution
+
+### [Covered Queries**](https://docs.mongodb.com/manual/core/query-optimization/#covered-query)
+- The query is covered by the index. No need to exam any documents
+
+### When is an index used? (choosing an index)
+
+### How Large is your index? (Index Size)
+- the index should fit in the memory
+- `db.students.stats()` or `db.students.totalIndexSize()` to check index size
+
+### Number of Index Entries
+- Index Cardinality
+  - Regular (1:1)
+  - Sparse (<= documents)
+  - MultiKey (tags:(,,)) >documents
+
+### [Geospatial Indexes: 2d](https://docs.mongodb.com/manual/geospatial-queries/)
+- find documents which is near the given geo location
+  - `db.stores.find({location: {$near: [50, 50]}})`
+
+### [Geospatial Spherical: 3d/2dsphere](https://docs.mongodb.com/manual/core/2dsphere/)
+-  `db.places.find({
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [-122.1691601, 37.4276114],
+        },
+        $maxDistance: 2000
+      }
+    }
+  })`
+- [longitude, latitude]
+
+### [Text Indexes(Full Text Search)](https://docs.mongodb.com/manual/core/index-text/)
+- `db.sentences.createIndex({words: 'text'})`
+- `db.sentences.find({$text: {$search: 'dog'}})`
+- find the best match
+  -  `db.sentences.find({$text: {$search: 'dog tree obsidian'}}, {score: {$meta 'textScore'}}).sort({score: {$meta: 'textScore'}})`
+- `{$search: 'dog tree obsidian'}`: `dog` or `tree` or `obsidian`
+
+### Efficiency of Index Use
+- Design/Using Indexes
+  - Goals
+    - Efficient read/write operation
+    - selectivity: minimize records scanned (primary factor)
+    - other ops: how are sorts handled?
+- `hint()`
+- [compound indexes](https://docs.mongodb.com/v2.8/tutorial/create-a-compound-index/)
+- Create compound index(??)
+  - Equity fields before range fields
+  - Sort fields before range fields
+  - Equality fields before sort fields
+
+### Logging Slow Queries
+- check logs in mongod shell
+
+### Profiling
+- for any queries take long times
+- Level 0: off
+- Level 1: 10s, slow queries
+- Level 2: all, my queries
+- mongod shell: `mongod --dbpath /usr/local/var/mongodb --profile 1 --slowms 2`
+- mongo shell: `db.system.profile.find().pretty()`
+- mongo shell: `db.getProfilingLevel()`
+- mongo shell: `db.getProfilingStatus()`
+- mongo shell: `db.setProfilingLevel(1, 4)`
+- turn if off: `db.setProfilingLevel(0)`
+- db.system.profile.find({millis: {$gt: 1000}}).sort({ts: -1})
+
+### [Mongotop](https://docs.mongodb.com/manual/reference/program/mongotop/) **
+- Reviews
+  - Indexes are critical to performance
+  - Explain
+  - Hint
+  - Profiling
+- High level view of how mongodb work
+- a command
+
+### [Mongostat](https://docs.mongodb.com/manual/reference/program/mongostat/) **
+
+### [Sharding](https://docs.mongodb.com/manual/sharding/)
+- put collections in multiservers
+- [replica set](replica set)
+
+
 ## Questions
 1. How to search in array of object in mongodb?
   - [Query an Array of embedded documents](https://docs.mongodb.com/manual/tutorial/query-array-of-documents/)
@@ -248,3 +426,4 @@
   - ($unset)[https://docs.mongodb.com/manual/reference/operator/update/unset/]
 3. How to check a field is null ?
   - [Query for null or missing fields](https://docs.mongodb.com/v3.2/tutorial/query-for-null-fields/)
+4. How to understand index?
