@@ -418,6 +418,234 @@
 - put collections in multiservers
 - [replica set](replica set)
 
+## [Week 6: The Aggregation Framework](https://docs.mongodb.com/manual/aggregation/)
+### Introduction to the Aggregation Framework
+- A set of analyse set within mongodb
+- `pipeline` works with mongodb collections
+- `Stage`: data processor
+
+### Familiar Aggregation Operations
+- Stages
+  - match(find)
+  - project
+  - sort
+  - skip
+  - limit
+- use aggregate
+  - `db.companies.aggregate([
+    { $match: {
+      founded_year: 2004
+      }
+    },
+    {
+      $sort: {
+        name: 1
+      }
+    },
+    {
+      $skip: 10
+    },
+    {
+      $limit: 5
+    },
+    {
+      $project: {
+        _id: 0,
+        name: 1,
+        founded_year: 1
+      }
+    }
+    ])`
+  - an aggregate is an array with different stages as elements
+  - think about the efficiency of the pipeline
+  - the order of different stages matters
+
+### [Expression Overview](https://docs.mongodb.com/manual/meta/aggregation-quick-reference/#expressions)
+
+### Reshaping Documents in $project Stages
+- [$project](https://docs.mongodb.com/manual/reference/operator/aggregation/project/#pipe._S_project)
+- `db.companies.aggregate([
+  {
+    $match: {
+      "funding_rounds.investments.financial_org.permalink": "greylock"
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      name: 1,
+      ipo: "$ipo.pub_year",
+      valuation: "$ipo.valuation_amount",
+      funders: "$funding_rounds.investments.financial_org.permalink"
+    }
+  }
+  ])`
+  - `$` sign above means give me the value
+  - `Promote Nested Fields`
+  - can not change the data type for the $project operation
+
+### [`$unwind`](https://docs.mongodb.com/manual/reference/operator/aggregation/unwind/)
+- [see example](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/$unwind.png)
+- $unwind can be placed before $match, however, $match should happen as soon as possible ($match operation can be used multiple times)
+
+### [Array Expressions](https://docs.mongodb.com/manual/reference/operator/aggregation-array/)
+- `$filter` is used for array values
+- to reference a variable defined with an expression, use `$$`
+- `as` define a variable
+- `first_round: {$arrayElemAt: ["$funding_rounds", 0]}`
+- `last_round: {$arrayElemAt: ["$funding_rounds", -1]}`
+- `early_rounds: { $slice: ["$funding_rounds", 1, 3]}`
+- `total_rounds: { $size: "$funding_rounds" }`
+
+### [Accumulators Expression](https://docs.mongodb.com/manual/reference/operator/aggregation-group/)
+- use accumulators in the $project stage
+  - `largest_round: { $max: "$funding_rounds.raised_amount" }`
+
+### Introduction to [$group](https://docs.mongodb.com/manual/reference/operator/aggregation/group/)
+- similar to sql `groupby` command
+- `db.companies.aggregate([
+  {
+    $group: {
+      _id: {
+        founded_year: "$founded_year"
+      },
+      average_number_of_employees: {
+        $avg: "$number_of_employees"
+      }
+    }
+  },
+  {
+    $sort: {
+      average_number_of_employees: -1
+    }
+  }
+  ])`
+
+### `_id` in $group stages
+
+### `$group` vs.`$project`
+-  `$project` work on one document at a time.
+
+### Homework 6-1
+- `db.companies.aggregate( [
+    { $match: { "relationships.person": { $ne: null } } },
+    { $project: { relationships: 1, name: 1, _id: 0 } },
+    { $unwind: "$relationships" },
+    { $group: {
+        _id: "$relationships.person",
+        companies: { $addToSet: "$name"},
+        count: { $sum: 1 }
+    } },
+    { $sort: { count: -1 } }
+] ).pretty()`
+
+### Homework 6-2
+- `db.grades.aggregate(
+
+	// Pipeline
+	[
+		// Stage 1
+		{
+			$project: {
+			    // specifications
+
+			      "_id": 0,
+			    	  "class_id": 1,
+			    	  "scores": {
+			    	    $filter: {
+			               input: "$scores",
+			               as: "score",
+			               cond: { $ne: [ "$$score.type", "quiz" ] }
+			            }
+			    	  }
+
+			}
+		},
+
+		// Stage 2
+		{
+			$unwind: "$scores"
+		},
+
+		// Stage 3
+		{
+			$group: {
+				_id: "$class_id",
+				count: { $sum: 1},
+				aveScore: {$avg: "$scores.score"},
+			}
+		},
+
+		// Stage 4
+		{
+			$sort: {
+				aveScore: -1
+			}
+		},
+
+	]
+
+);`
+
+- hw6-3
+`db.companies.aggregate(
+
+	// Pipeline
+	[
+		// Stage 1
+		{
+			$match: {
+				"founded_year": 2004,
+			}
+		},
+
+		// Stage 2
+		{
+			$project: {
+			    // specifications
+			    "_id": 0,
+			    "funding_rounds": 1,
+			    size_of_rounds: {$size: "$funding_rounds"},
+			    name: 1
+			}
+		},
+
+		// Stage 3
+		{
+			$match: {
+				size_of_rounds: {$gte: 5}
+			}
+		},
+
+		// Stage 4
+		{
+			$project: {
+				raiseAmount: "$funding_rounds.raised_amount",
+				name: 1
+			}
+		},
+
+		// Stage 5
+		{
+			$project: {
+			    // specifications
+			    avg: {$avg: "$raiseAmount"},
+			    "name": 1
+			}
+		},
+
+		// Stage 6
+		{
+			$sort: {
+				avg : 1
+			}
+		},
+
+	]
+
+
+);
+`
 
 ## Questions
 1. How to search in array of object in mongodb?
@@ -427,3 +655,4 @@
 3. How to check a field is null ?
   - [Query for null or missing fields](https://docs.mongodb.com/v3.2/tutorial/query-for-null-fields/)
 4. How to understand index?
+5. Why do we need aggregate method? What is the difference with mongodb queries?
