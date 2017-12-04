@@ -647,6 +647,80 @@
 );
 `
 
+## Week 7: Application Engineering
+### Intro
+- Durability: How the data is persistent in the disk
+- Replication
+- Sharding: Distribute collections through multiple servers
+
+### [Write Concern](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/Write Concern.png)
+- The `Journal` may not write to the disk because of the server crash
+
+### Network Errors
+- May not receive response because of Network Error
+
+### [Introduction to Replication](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/Intro to Replication.png)
+- Availability
+- Fault Tolerance
+- Minimum sets: 3
+
+### Replica Set Elections
+- Type of Replica Set Nodes
+  - Regular (no data on it)
+  - Arbiter (voting) (no data on it)
+  - Delayed/Regular (priority = 0)
+  - Hidden (never be the primary), priority = 0
+- Regular replica set members, hidden members and arbiters can participate in elections of a new primary.
+
+### Write Consistency
+- Eventual Consistency
+
+### Creating a Replica Set
+- Step 1: create the three different mongod server
+  - create replica set script (create_replica_set.sh)
+    - `#!/usr/bin/env bash
+
+    mkdir -p /data/rs1 /data/rs2 /data/rs3
+    mongod --replSet m101 --logpath "1.log" --dbpath /data/rs1 --port 27017 --oplogSize 64 --fork --smallfiles
+    mongod --replSet m101 --logpath "2.log" --dbpath /data/rs2 --port 27018 --oplogSize 64 --smallfiles --fork
+    mongod --replSet m101 --logpath "3.log" --dbpath /data/rs3 --port 27019 --oplogSize 64 --smallfiles --fork`
+    - run `bash < create_replica_set.sh` to run the script
+    - check contents in a file: `more 1.log`
+- Step 2: connect each server together to set up the replica set (configuration)
+  - the init replica script
+    - `config = { _id: "m101", members:[
+              { _id : 0, host : "localhost:27017"},
+              { _id : 1, host : "localhost:27018"},
+              { _id : 2, host : "localhost:27019"} ]
+    };
+
+    rs.initiate(config);
+    rs.status();
+`
+  - connect to a mongo shell or switch to a different mongo shell
+    - `mongo --port 27018`
+  - run the init script
+    - `mongo --port 27018 < init_replica.js`
+  - get the replica set status
+    - `rs.status()`
+  - can't query secondary by default
+    - `re.slaveOk()`
+  - do query
+
+### Replica Set Internals
+- `oplog` (operation log)
+- check the oplog `db.oplog.rs.find().pretty()`
+- What if failover (E.g, kill the primary mongod shell)
+  - if the primary fails, a secondary will become a primary
+  - The entire dataset will be copied from the primary if a node comes back up as a secondary after a period of being offline and the oplog has looped on the primary.
+
+### [Connecting to a Replica Set from the Node.js Driver](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/Connect to Replica Set via Driver.png)
+- Step 1: start the 3 replica sets E.g, `mongod --port 30003 --replSet replica_set --dbpath /data/db/rs3`
+- Step 2: config replica sets
+  - initiate the replica set `rs.initiate()`
+  - add other sets `rs.add("education.local: 30002")`
+  - check the status: `rs.status()`;
+
 ## Questions
 1. How to search in array of object in mongodb?
   - [Query an Array of embedded documents](https://docs.mongodb.com/manual/tutorial/query-array-of-documents/)
