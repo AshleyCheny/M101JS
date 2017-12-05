@@ -653,13 +653,13 @@
 - Replication
 - Sharding: Distribute collections through multiple servers
 
-### [Write Concern](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/Write Concern.png)
+### [Write Concern](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/WriteConcern.png)
 - The `Journal` may not write to the disk because of the server crash
 
 ### Network Errors
 - May not receive response because of Network Error
 
-### [Introduction to Replication](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/Intro to Replication.png)
+### [Introduction to Replication](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/IntrotoReplication.png)
 - Availability
 - Fault Tolerance
 - Minimum sets: 3
@@ -714,12 +714,52 @@
   - if the primary fails, a secondary will become a primary
   - The entire dataset will be copied from the primary if a node comes back up as a secondary after a period of being offline and the oplog has looped on the primary.
 
-### [Connecting to a Replica Set from the Node.js Driver](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/Connect to Replica Set via Driver.png)
+### [Connecting to a Replica Set from the Node.js Driver](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/ConnecttoReplicaSetviaDriver.png)
 - Step 1: start the 3 replica sets E.g, `mongod --port 30003 --replSet replica_set --dbpath /data/db/rs3`
 - Step 2: config replica sets
   - initiate the replica set `rs.initiate()`
   - add other sets `rs.add("education.local: 30002")`
   - check the status: `rs.status()`;
+- Step 3: [Node.js Driver connects to the replica set](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/Node.jsConnectstoRelicaSet.png)
+
+### [Failover in the Node.js Driver](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/NodejsDriverFailure.png)
+- Driver will bundle the operations(buffered) and wait until the selection is done. And send the bundle to the selected set.
+
+### [Write Concern Revisited](https://docs.mongodb.com/manual/reference/write-concern/?_ga=2.15762870.1023933764.1512156277-1809696315.1505849294#j-option)**
+- `w` wait for the acknowledge for the write from the set
+- `j` wait for the write to connect to the disk
+
+### Read Preferences
+- primary: read from primary
+- primaryprefered: prefer to read from primary
+- secondary
+- secondaryprefered
+- nearest
+
+### Review of Implication of Replication
+- Seed lists
+- Write concern
+- Read Preferences
+- Errors can happen
+
+### [Introduction to Sharding](https://docs.mongodb.com/manual/sharding/) **
+- scalability
+- a method for distributing data across multiple machines
+- Chunks of collection in different shards
+- Range-based vs. Hash-based Chunks
+
+### [Build a Sharded Environment](https://github.com/AshleyCheny/M101JS-CRSE/blob/master/Images/BuildaShardedEnvironment.png)
+
+### Implications of Sharding
+- Every doc includes a shard key
+- Shard Key is immutable
+- ...
+
+### Sharding + Replication
+
+### [Choosing a Shard Key](https://docs.mongodb.com/v2.8/tutorial/choose-a-shard-key/)
+- It will affect performance
+
 
 ## Questions
 1. How to search in array of object in mongodb?
