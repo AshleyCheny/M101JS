@@ -210,7 +210,6 @@ function ItemDAO(database) {
          */
 
          var items = [];
-         console.log("fired 1");
          var options = {
            "sort": "_id",
            "skip": page*itemsPerPage,
@@ -277,15 +276,19 @@ function ItemDAO(database) {
          * _id and pass the matching item to the callback function.
          *
          */
+         var item;
 
-        var item = this.createDummyItem();
+         this.db.open(function(err, db){
+           db.collection("item").findOne({"_id": itemId}, function(err, doc){
+             item = doc;
+             // TODO-lab3 Replace all code above (in this method).
 
-        // TODO-lab3 Replace all code above (in this method).
-
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the matching item
-        // to the callback.
-        callback(item);
+             // TODO Include the following line in the appropriate
+             // place within your code to pass the matching item
+             // to the callback.
+             callback(item);
+           })
+         });
     }
 
 
@@ -325,13 +328,16 @@ function ItemDAO(database) {
 
         // TODO replace the following two lines with your code that will
         // update the document with a new review.
-        var doc = this.createDummyItem();
-        doc.reviews = [reviewDoc];
+        this.db.open(function(err, db){
+          db.collection("item").findOneAndUpdate(
+            {"_id": itemId},
+            {$push: { "reviews": reviewDoc}},
+            {upsert: true, returnNewDocument: true},
+            function(err, doc){
+              callback(doc);
+            })
+        });
 
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the updated doc to the
-        // callback.
-        callback(doc);
     }
 
 
